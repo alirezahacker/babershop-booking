@@ -126,85 +126,67 @@
     </div>
 
     <script>
-        // این آدرس رو بعداً عوض می‌کنیم وقتی n8n رو راه انداختی
-        const N8N_URL = 'http://localhost:5678';
+    // اطلاعات شیت‌بست (اینو از سایت شیت‌بست کپی کن)
+    const SHEETBEST_URL = 'https://api.sheetbest.com/sheets/59a00c85-11e8-4936-81b5-bae78c27ba57';
+    
+    // وقتی تاریخ عوض میشه - فعلاً غیرفعال
+    document.getElementById('date').addEventListener('change', function() {
+        // بعداً ساعت‌های خالی رو از گوگل شیت می‌خونیم
+    });
+    
+    // ثبت نوبت
+    document.getElementById('bookingForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
         
-        // وقتی تاریخ عوض می‌شه
-        document.getElementById('date').addEventListener('change', async function() {
-            const date = this.value;
-            if (!date) return;
-            
-            const timeSelect = document.getElementById('time');
-            const loading = document.getElementById('loading');
-            
-            loading.style.display = 'block';
-            
-            try {
-                const response = await fetch(`${N8N_URL}/webhook/get-available-slots?date=${date}`);
-                const data = await response.json();
-                
-                loading.style.display = 'none';
-                timeSelect.innerHTML = '<option value="">ساعت را انتخاب کنید</option>';
-                
-                if (data.availableSlots && data.availableSlots.length > 0) {
-                    data.availableSlots.forEach(slot => {
-                        const option = document.createElement('option');
-                        option.value = slot;
-                        option.textContent = slot;
-                        timeSelect.appendChild(option);
-                    });
-                } else {
-                    timeSelect.innerHTML = '<option value="">هیچ وقت خالی نیست</option>';
-                }
-            } catch (error) {
-                loading.style.display = 'none';
-                timeSelect.innerHTML = '<option value="">خطا در دریافت ساعت‌ها</option>';
-            }
-        });
+        const name = document.getElementById('name').value;
+        const phone = document.getElementById('phone').value;
+        const date = document.getElementById('date').value;
+        const time = document.getElementById('time').value;
         
-        // ثبت نوبت
-        document.getElementById('bookingForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
+        if (!time) {
+            alert('لطفاً ساعت را انتخاب کنید');
+            return;
+        }
+        
+        const messageDiv = document.getElementById('message');
+        messageDiv.textContent = 'در حال ثبت نوبت...';
+        messageDiv.className = 'message';
+        messageDiv.style.display = 'block';
+        
+        // آماده کردن داده برای شیت‌بست
+        const data = {
+            تاریخ: date,
+            ساعت: time,
+            نام: name,
+            تلفن: phone,
+            وضعیت: 'confirmed',
+            created_at: new Date().toLocaleString('fa-IR'),
+            notified: 'NO'
+        };
+        
+        try {
+            // ارسال به شیت‌بست
+            const response = await fetch(SHEETBEST_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify([data])  // توجه: شیت‌بست آرایه می‌خواد
+            });
             
-            const name = document.getElementById('name').value;
-            const phone = document.getElementById('phone').value;
-            const date = document.getElementById('date').value;
-            const time = document.getElementById('time').value;
-            
-            if (!time || time === '') {
-                alert('لطفاً ساعت را انتخاب کنید');
-                return;
-            }
-            
-            const messageDiv = document.getElementById('message');
-            messageDiv.textContent = 'در حال ثبت نوبت...';
-            messageDiv.className = 'message';
-            messageDiv.style.display = 'block';
-            
-            try {
-                const response = await fetch(`${N8N_URL}/webhook/book-appointment`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ name, phone, date, time })
-                });
-                
-                const result = await response.json();
-                
-                if (result.success) {
-                    messageDiv.textContent = result.message;
-                    messageDiv.className = 'message success';
-                    document.getElementById('bookingForm').reset();
-                } else {
-                    messageDiv.textContent = result.message;
-                    messageDiv.className = 'message error';
-                }
-            } catch (error) {
-                messageDiv.textContent = 'خطا در ارتباط با سرور';
+            if (response.ok) {
+                messageDiv.textContent = '✅ نوبت شما با موفقیت ثبت شد';
+                messageDiv.className = 'message success';
+                document.getElementById('bookingForm').reset();
+            } else {
+                messageDiv.textContent = '❌ خطا در ثبت نوبت';
                 messageDiv.className = 'message error';
             }
-        });
-    </script>
+        } catch (error) {
+            messageDiv.textContent = '❌ خطا در ارتباط با سرور';
+            messageDiv.className = 'message error';
+        }
+    });
+</script>
 </body>
 </html>
