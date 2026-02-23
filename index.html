@@ -44,10 +44,6 @@
             border-radius: 8px;
             font-size: 16px;
         }
-        input:focus, select:focus {
-            border-color: #4CAF50;
-            outline: none;
-        }
         button {
             width: 100%;
             padding: 14px;
@@ -78,23 +74,11 @@
             color: #721c24;
             display: block;
         }
-        .loading {
-            text-align: center;
-            margin: 10px 0;
-            display: none;
-            color: #666;
-        }
-        #time {
-            width: 100%;
-            padding: 12px;
-        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h2>✂️ سیستم نوبت‌دهی آنلاین</h2>
-        
-        <div class="loading" id="loading">در حال بارگذاری...</div>
+        <h2>✂️ سیستم نوبت‌دهی آرایشگاه</h2>
         
         <form id="bookingForm">
             <div class="form-group">
@@ -115,78 +99,91 @@
             <div class="form-group">
                 <label>ساعت</label>
                 <select id="time" required>
-                    <option value="">ابتدا تاریخ را انتخاب کنید</option>
+                    <option value="">لطفاً یک ساعت انتخاب کنید</option>
+                    <option value="10:00">۱۰:۰۰ صبح</option>
+                    <option value="10:30">۱۰:۳۰</option>
+                    <option value="11:00">۱۱:۰۰</option>
+                    <option value="11:30">۱۱:۳۰</option>
+                    <option value="12:00">۱۲:۰۰</option>
+                    <option value="12:30">۱۲:۳۰</option>
+                    <option value="13:00">۱۳:۰۰</option>
+                    <option value="16:00">۱۶:۰۰ عصر</option>
+                    <option value="16:30">۱۶:۳۰</option>
+                    <option value="17:00">۱۷:۰۰</option>
+                    <option value="17:30">۱۷:۳۰</option>
+                    <option value="18:00">۱۸:۰۰</option>
+                    <option value="18:30">۱۸:۳۰</option>
+                    <option value="19:00">۱۹:۰۰</option>
+                    <option value="19:30">۱۹:۳۰</option>
+                    <option value="20:00">۲۰:۰۰</option>
+                    <option value="20:30">۲۰:۳۰</option>
                 </select>
             </div>
             
-            <button type="submit">ثبت نوبت</button>
+            <button type="submit">✅ ثبت نوبت</button>
         </form>
         
         <div id="message" class="message"></div>
     </div>
 
     <script>
-    // اطلاعات شیت‌بست (اینو از سایت شیت‌بست کپی کن)
-    const SHEETBEST_URL = 'https://api.sheetbest.com/sheets/59a00c85-11e8-4936-81b5-bae78c27ba57';
-    
-    // وقتی تاریخ عوض میشه - فعلاً غیرفعال
-    document.getElementById('date').addEventListener('change', function() {
-        // بعداً ساعت‌های خالی رو از گوگل شیت می‌خونیم
-    });
-    
-    // ثبت نوبت
-    document.getElementById('bookingForm').addEventListener('submit', async function(e) {
-        e.preventDefault();
+        // آدرس شیت‌بست خودت رو اینجا بچسبون
+        const SHEETBEST_URL = 'https://api.sheetbest.com/sheets/59a00c85-11e8-4936-81b5-bae78c27ba57';
         
-        const name = document.getElementById('name').value;
-        const phone = document.getElementById('phone').value;
-        const date = document.getElementById('date').value;
-        const time = document.getElementById('time').value;
-        
-        if (!time) {
-            alert('لطفاً ساعت را انتخاب کنید');
-            return;
-        }
-        
-        const messageDiv = document.getElementById('message');
-        messageDiv.textContent = 'در حال ثبت نوبت...';
-        messageDiv.className = 'message';
-        messageDiv.style.display = 'block';
-        
-        // آماده کردن داده برای شیت‌بست
-        const data = {
-            تاریخ: date,
-            ساعت: time,
-            نام: name,
-            تلفن: phone,
-            وضعیت: 'confirmed',
-            created_at: new Date().toLocaleString('fa-IR'),
-            notified: 'NO'
-        };
-        
-        try {
-            // ارسال به شیت‌بست
-            const response = await fetch(SHEETBEST_URL, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify([data])  // توجه: شیت‌بست آرایه می‌خواد
-            });
+        document.getElementById('bookingForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
             
-            if (response.ok) {
-                messageDiv.textContent = '✅ نوبت شما با موفقیت ثبت شد';
-                messageDiv.className = 'message success';
-                document.getElementById('bookingForm').reset();
-            } else {
-                messageDiv.textContent = '❌ خطا در ثبت نوبت';
+            const name = document.getElementById('name').value;
+            const phone = document.getElementById('phone').value;
+            const date = document.getElementById('date').value;
+            const time = document.getElementById('time').value;
+            
+            if (!time) {
+                alert('لطفاً ساعت را انتخاب کنید');
+                return;
+            }
+            
+            const messageDiv = document.getElementById('message');
+            messageDiv.textContent = 'در حال ثبت نوبت...';
+            messageDiv.className = 'message';
+            messageDiv.style.display = 'block';
+            
+            // آماده کردن داده برای شیت‌بست
+            const data = [{
+                تاریخ: date,
+                ساعت: time,
+                نام: name,
+                تلفن: phone,
+                وضعیت: "confirmed",
+                created_at: new Date().toLocaleString('fa-IR'),
+                notified: "NO"
+            }];
+            
+            try {
+                const response = await fetch(SHEETBEST_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                if (response.ok) {
+                    messageDiv.textContent = '✅ نوبت شما با موفقیت ثبت شد';
+                    messageDiv.className = 'message success';
+                    document.getElementById('bookingForm').reset();
+                } else {
+                    const errorText = await response.text();
+                    console.log('خطا:', errorText);
+                    messageDiv.textContent = '❌ خطا در ثبت نوبت';
+                    messageDiv.className = 'message error';
+                }
+            } catch (error) {
+                console.log('خطای اتصال:', error);
+                messageDiv.textContent = '❌ خطا در ارتباط با سرور';
                 messageDiv.className = 'message error';
             }
-        } catch (error) {
-            messageDiv.textContent = '❌ خطا در ارتباط با سرور';
-            messageDiv.className = 'message error';
-        }
-    });
-</script>
+        });
+    </script>
 </body>
 </html>
